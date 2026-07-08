@@ -304,7 +304,7 @@ static void trackpoint_work_cb(struct k_work *work) {
     bool just_enter_arrow = arrow_key_pressed && !last_arrow_key_pressed;
     bool capslock = current_indicators & HID_INDICATORS_CAPS_LOCK;
 
-    if (arrow_key_pressed) {
+    if (true) {
 
         if (just_enter_arrow) {
             data->arrow_residue_x = dx;
