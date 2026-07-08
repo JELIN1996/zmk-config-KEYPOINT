@@ -299,16 +299,15 @@ static void trackpoint_work_cb(struct k_work *work) {
 
     last_activity_time = now;
 
-    /* ========= scroll mode detect ========= */
-    bool just_enter_scroll = scroll_key_pressed && !last_scroll_key_pressed;
-    bool just_enter_arrow = arrow_key_pressed && !last_arrow_key_pressed;
-    bool capslock = current_indicators & HID_INDICATORS_CAPS_LOCK;
+    /* ========= Always Arrow Mode ========= */
+bool just_enter_arrow = !last_arrow_key_pressed;
+arrow_key_pressed = true;
 
-    if (arrow_key_pressed) {
+if (arrow_key_pressed) {
 
-        if (just_enter_arrow) {
-            data->arrow_residue_x = dx;
-            data->arrow_residue_y = dy;
+    if (just_enter_arrow) {
+        data->arrow_residue_x = dx;
+        data->arrow_residue_y = dy;
         }
 
         int abs_dx = abs(dx);
@@ -355,27 +354,6 @@ static void trackpoint_work_cb(struct k_work *work) {
         input_report_rel(dev, INPUT_REL_HWHEEL, -out_x, false, K_FOREVER);
         input_report_rel(dev, INPUT_REL_WHEEL, out_y, true, K_FOREVER);
         k_msleep(25);
-
-    } else {
-
-        uint8_t tp_led_brt = custom_led_get_last_valid_brightness();
-        float tp_factor = MOUSE_SENS_BASE + MOUSE_SENS_STEP * tp_led_brt;
-            
-#ifdef CONFIG_TRACKPOINT_EXPONENTIAL
-        uint32_t delta = now - data->last_packet_time;
-        float exp_mult = trackpoint_exponential_factor(dx, dy, delta);
-#else
-        float exp_mult = 1.0f;
-#endif
-
-        float slow_mult = slow_key_pressed ? SLOW_KEY_MULTIPLIER : 1.0f;
-
-        float fx = dx * MOUSE_BASE_SPEED * tp_factor * exp_mult * slow_mult;
-        float fy = dy * MOUSE_BASE_SPEED * tp_factor * exp_mult * slow_mult;
-
-        input_report_rel(dev, INPUT_REL_X, -(int)fx, false, K_NO_WAIT);
-        input_report_rel(dev, INPUT_REL_Y, -(int)fy, true, K_NO_WAIT);
-    }
 
     last_scroll_key_pressed = scroll_key_pressed;
     last_arrow_key_pressed = arrow_key_pressed;
